@@ -19,6 +19,7 @@ configLine = do
     name <- manyTill (noneOf "[") (char ' ')
     val <- case name of 
             "exec" -> configString
+            "directory" -> configString
             "delay" -> reqInt
             "stdout" -> configString
             "stderr" -> configString
@@ -53,6 +54,7 @@ program = do
     
         setAttr prg (Just (n, v))  = case n of 
                                     "exec" -> return prg{exec=v}
+                                    "directory" -> return prg{directory=v}
                                     "delay" -> return prg{delay=(read v)::Int}
                                     "stdout" -> return prg{stdout=v}
                                     "stderr" -> return prg{stderr=v}

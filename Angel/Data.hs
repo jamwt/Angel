@@ -20,11 +20,12 @@ type RunKey = M.Map ProgramId (Program, Maybe ProcessHandle)
 type ProgramId = String
 type FileRequest = (String, TChan (Maybe Handle))
 
--- |the representation of a program is these 5 values, 
+-- |the representation of a program is these 6 values, 
 -- |read from the config file
 data Program = Program {
     name :: String,
     exec :: String,
+    directory :: FilePath,
     delay :: Int,
     stdout :: String,
     stderr :: String
@@ -38,6 +39,7 @@ type Spec = [Program]
 defaultProgram = Program{
     name="",
     exec="",
+    directory="",
     delay=5,
     stdout="/dev/null",
     stderr="/dev/null"

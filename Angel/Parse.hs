@@ -17,6 +17,7 @@ configString = manyTill anyChar $ char '\n'
 configLine :: GenParser Char st Kw
 configLine = do 
     name <- manyTill (noneOf "[") (char ' ')
+    many $ char ' '
     val <- case name of 
             "exec" -> configString
             "directory" -> configString

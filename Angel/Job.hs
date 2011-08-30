@@ -9,6 +9,7 @@ import Control.Concurrent.STM
 import Control.Concurrent.STM.TVar (readTVar, writeTVar)
 import qualified Data.Map as M
 import Control.Monad (unless, when, forever)
+import System.Directory (getCurrentDirectory, setCurrentDirectory)
 
 import Angel.Log (logger)
 import Angel.Data
@@ -35,12 +36,16 @@ supervise sharedGroupConfig id = do
             (attachOut, attachErr) <- makeFiles my_spec cfg
 
             let (cmd, args) = cmdSplit $ exec my_spec
-            
+            let dir =  directory my_spec
+
+            olddir <- getCurrentDirectory
+            when (not $ null dir) $ setCurrentDirectory dir
             (_, _, _, p) <- createProcess (proc cmd args){
             std_out = attachOut,
             std_err = attachErr,
             cwd = workingDir my_spec 
             }
+            setCurrentDirectory olddir
             
             updateRunningPid my_spec (Just p)
             log "RUNNING"

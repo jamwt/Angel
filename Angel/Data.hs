@@ -25,6 +25,7 @@ type FileRequest = (String, TChan (Maybe Handle))
 data Program = Program {
     name :: String,
     exec :: String,
+    directory :: FilePath,
     delay :: Int,
     stdout :: String,
     stderr :: String,
@@ -39,6 +40,7 @@ type Spec = [Program]
 defaultProgram = Program{
     name="",
     exec="",
+    directory="",
     delay=5,
     stdout="/dev/null",
     stderr="/dev/null",

@@ -1,8 +1,10 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Angel.Files (getFile, startFileManager) where
 
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TChan (readTChan, writeTChan, TChan, newTChan, newTChanIO)
 import Control.Monad (forever)
+import Control.Exception (catch, SomeException)
 import System.IO (Handle, hClose, openFile, IOMode(..), hIsClosed)
 import GHC.IO.Handle (hDuplicate)
 import Debug.Trace (trace)
@@ -11,9 +13,9 @@ import Angel.Data (GroupConfig(..), FileRequest)
 startFileManager req = forever $ fileManager req
 
 fileManager :: TChan FileRequest -> IO ()
-fileManager req = do 
+fileManager req = do
     (path, resp) <- atomically $ readTChan req
-    mh <- catch  (openFile path AppendMode >>= \h-> return $ Just h) (\e-> return Nothing)
+    mh <- catch (openFile path AppendMode >>= \h-> return $ Just h) (\(e :: SomeException) -> return Nothing)
     case mh of
         Just hand -> do
             hand' <- hDuplicate hand

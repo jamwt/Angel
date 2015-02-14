@@ -15,6 +15,9 @@ import Control.Monad (forever)
 import System.Environment (getArgs)
 import System.Exit (exitFailure,
                     exitSuccess)
+import System.Posix.User (setUserID,
+                          getUserEntryForName,
+                          UserEntry(userID))
 import System.Posix.Signals (installHandler,
                              sigHUP,
                              sigTERM,
@@ -47,23 +50,29 @@ handleExit mv = putMVar mv True
 main :: IO ()
 main = handleArgs =<< getArgs
 
+switchUser :: String -> IO ()
+switchUser name = do
+    userEntry <- getUserEntryForName name
+    setUserID $ userID userEntry
+
 handleArgs :: [String] -> IO ()
 handleArgs ["--help"]   = printHelp
 handleArgs ["-h"]       = printHelp
 handleArgs []           = printHelp
-handleArgs [configPath] = runWithConfigPath configPath
-handleArgs _            = errorExit "expected a single config file. Run with --help for usasge."
+handleArgs ["-u", name, configPath] = runWithConfigPath (Just name) configPath
+handleArgs [configPath] = runWithConfigPath Nothing configPath
+handleArgs _            = errorExit "expected a single config file. Run with --help for usage."
 
 printHelp :: IO ()
-printHelp = putStrLn "Usage: angel [--help] CONFIG_FILE" >> exitSuccess
+printHelp = putStrLn "Usage:\n\tangel [--help] CONFIG_FILE\n\tangel -u USERNAME CONFIG_FILE\n" >> exitSuccess
 
-runWithConfigPath :: FilePath -> IO ()
-runWithConfigPath configPath = do
+runWithConfigPath :: Maybe String -> FilePath -> IO ()
+runWithConfigPath username configPath = do
     hSetBuffering stdout LineBuffering
     hSetBuffering stderr LineBuffering
     let logger' = logger "main"
     logger' "Angel started"
-
+    maybe (return()) (\username' -> (logger' ("Switching to user: " ++ username')) >> switchUser username') username
     logger' $ "Using config file: " ++ configPath
 
     -- Create the TVar that represents the "global state" of running applications
